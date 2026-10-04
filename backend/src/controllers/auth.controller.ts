@@ -80,3 +80,35 @@ export function logout(_req: Request, res: Response) {
     clearAuthCookie(res);
     res.json({ message: 'Logged out' });
 }
+
+const changePasswordSchema = z.object({
+    currentPassword: z.string().min(1, 'Enter your current password'),
+    newPassword: z.string().min(8, 'New password must be at least 8 characters'),
+});
+
+export function me(req: Request, res: Response) {
+    if (!req.user) return res.status(401).json({ message: 'Please log in' });
+    res.json({ user: publicUser(req.user) });
+}
+
+export async function changePassword(req: Request, res: Response) {
+    const parsed = changePasswordSchema.safeParse(req.body);
+    if (!parsed.success) {
+        return res.status(400).json({ message: parsed.error.issues[0].message });
+    }
+    const { currentPassword, newPassword } = parsed.data;
+
+    const user = await User.findById(req.user?._id).select('+passwordHash');
+    if (!user || !(await bcrypt.compare(currentPassword, user.passwordHash))) {
+        return res.status(401).json({ message: 'Current password is incorrect' });
+    }
+    if (currentPassword === newPassword) {
+        return res.status(400).json({ message: 'New password must be different' });
+    }
+
+    user.passwordHash = await bcrypt.hash(newPassword, 10);
+    user.mustChangePassword = false;
+    await user.save();
+
+    res.json({ user: publicUser(user) });
+}
