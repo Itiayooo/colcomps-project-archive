@@ -86,3 +86,6 @@ td .id { font-size: 13px; color: var(--mute); }
 .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 11px 18px; border-radius: 2px; font-size: 14px; z-index: 50; max-width: 90vw; }
 .error { color: var(--rev); font-size: 14px; margin-bottom: 12px; }
 footer.site { border-top: 1px solid var(--line); background: #fff; padding: 20px 0; font-size: 13px; color: var(--mute); }
+
+nav.main { align-items: center; }
+.who { font-size: 14px; color: var(--mute); }
