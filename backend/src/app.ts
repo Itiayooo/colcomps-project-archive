@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import authRoutes from './routes/auth.routes';
 import departmentRoutes from './routes/department.routes';
 import adminRoutes from './routes/admin.routes';
+import projectRoutes from './routes/project.routes';
 
 const app = express();
 
@@ -13,6 +14,7 @@ app.use(cookieParser());
 app.use('/api/auth', authRoutes);
 app.use('/api/departments', departmentRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/projects', projectRoutes);
 
 
 app.get('/api/health', (_req, res) => {
