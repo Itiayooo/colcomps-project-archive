@@ -7,6 +7,8 @@ import RegisterPage from './pages/RegisterPage';
 import ChangePasswordPage from './pages/ChangePasswordPage';
 import NotFoundPage from './pages/NotFoundPage';
 import ProjectDetailPage from './pages/ProjectDetailPage';
+import ProjectFormPage from './pages/ProjectFormPage';
+import MyProjectsPage from './pages/MyProjectsPage';
 
 export default function App() {
   return (
@@ -19,6 +21,15 @@ export default function App() {
 
         <Route element={<ProtectedRoute />}>
           <Route path="/change-password" element={<ChangePasswordPage />} />
+        </Route>
+        
+        <Route element={<ProtectedRoute roles={['student']} guestRedirect="/register" />}>
+          <Route path="/submit" element={<ProjectFormPage />} />
+        </Route>
+
+        <Route element={<ProtectedRoute roles={['student']} />}>
+          <Route path="/my-projects" element={<MyProjectsPage />} />
+          <Route path="/my-projects/:id/edit" element={<ProjectFormPage />} />
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />

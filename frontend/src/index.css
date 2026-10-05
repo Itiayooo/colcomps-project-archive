@@ -92,3 +92,7 @@ nav.main { align-items: center; }
 
 .pager { display: flex; justify-content: space-between; align-items: center; padding-top: 20px; font-size: 14px; }
 .pager .lnk:disabled { color: var(--mute); text-decoration: none; cursor: not-allowed; }
+
+.notice { background: #fff; border: 1px solid var(--line); border-left: 3px solid var(--ok); padding: 10px 14px; margin-bottom: 20px; font-size: 14px; }
+.note { background: #fff; border: 1px solid var(--line); border-left: 3px solid var(--rev); padding: 10px 14px; margin: 10px 0; font-size: 14px; max-width: 680px; }
+.note b { display: block; margin-bottom: 2px; }
