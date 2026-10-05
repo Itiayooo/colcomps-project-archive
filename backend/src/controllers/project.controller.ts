@@ -213,3 +213,79 @@ export async function getProject(req: Request, res: Response) {
     }
     res.json({ project });
 }
+
+const updateSchema = submitSchema
+    .omit({ supervisorId: true })
+    .partial()
+    .refine((d) => Object.keys(d).length > 0, { message: 'Nothing to update' });
+
+export async function updateProject(req: Request, res: Response) {
+    const id = req.params.id as string;
+    if (!isValidObjectId(id)) {
+        return res.status(404).json({ message: 'Project not found' });
+    }
+
+    const parsed = updateSchema.safeParse(req.body);
+    if (!parsed.success) {
+        return res.status(400).json({ message: parsed.error.issues[0].message });
+    }
+
+    const project = await Project.findOne({ _id: id, student: req.user!._id });
+    if (!project) {
+        return res.status(404).json({ message: 'Project not found' });
+    }
+    if (!['pending', 'revisions_requested'].includes(project.status)) {
+        return res.status(400).json({ message: 'This project can no longer be changed' });
+    }
+
+    const { title, abstract, keywords, githubUrl, demoUrl } = parsed.data;
+    if (title !== undefined) project.title = title;
+    if (abstract !== undefined) project.abstract = abstract;
+    if (keywords !== undefined) project.keywords = keywords;
+    if (githubUrl !== undefined) project.githubUrl = githubUrl || undefined;
+    if (demoUrl !== undefined) project.demoUrl = demoUrl || undefined;
+    await project.save();
+
+    res.json({ project });
+}
+
+export async function resubmitProject(req: Request, res: Response) {
+    const id = req.params.id as string;
+    if (!isValidObjectId(id)) {
+        return res.status(404).json({ message: 'Project not found' });
+    }
+
+    const project = await Project.findOne({ _id: id, student: req.user!._id });
+    if (!project) {
+        return res.status(404).json({ message: 'Project not found' });
+    }
+    if (project.status !== 'revisions_requested') {
+        return res.status(400).json({ message: 'Only projects with requested revisions can be resubmitted' });
+    }
+    if (!project.pdfUrl) {
+        return res.status(400).json({ message: 'Upload the PDF before resubmitting' });
+    }
+
+    project.status = 'pending';
+    project.reviewNote = undefined;
+    await project.save();
+
+    res.json({ project });
+}
+
+export async function downloadProject(req: Request, res: Response) {
+    const id = req.params.id as string;
+    if (!isValidObjectId(id)) {
+        return res.status(404).json({ message: 'Project not found' });
+    }
+
+    const project = await Project.findOneAndUpdate(
+        { _id: id, status: 'approved', pdfUrl: { $exists: true, $ne: null } },
+        { $inc: { downloads: 1 } }
+    );
+    if (!project?.pdfUrl) {
+        return res.status(404).json({ message: 'Project not found' });
+    }
+
+    res.redirect(project.pdfUrl);
+}
