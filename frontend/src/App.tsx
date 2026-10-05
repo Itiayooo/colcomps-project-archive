@@ -11,6 +11,7 @@ import ProjectFormPage from './pages/ProjectFormPage';
 import MyProjectsPage from './pages/MyProjectsPage';
 import ReviewQueuePage from './pages/ReviewQueuePage';
 import ReviewDetailPage from './pages/ReviewDetailPage';
+import AdminPage from './pages/AdminPage';
 
 export default function App() {
   return (
@@ -37,6 +38,10 @@ export default function App() {
         <Route element={<ProtectedRoute roles={['supervisor']} />}>
           <Route path="/review" element={<ReviewQueuePage />} />
           <Route path="/review/:id" element={<ReviewDetailPage />} />
+        </Route>
+
+        <Route element={<ProtectedRoute roles={['admin']} />}>
+          <Route path="/admin" element={<AdminPage />} />
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />

@@ -96,3 +96,10 @@ nav.main { align-items: center; }
 .notice { background: #fff; border: 1px solid var(--line); border-left: 3px solid var(--ok); padding: 10px 14px; margin-bottom: 20px; font-size: 14px; }
 .note { background: #fff; border: 1px solid var(--line); border-left: 3px solid var(--rev); padding: 10px 14px; margin: 10px 0; font-size: 14px; max-width: 680px; }
 .note b { display: block; margin-bottom: 2px; }
+
+.cred { background: #fff; border: 1px solid var(--line); border-left: 3px solid var(--wait); padding: 14px 16px; margin-bottom: 24px; max-width: 640px; font-size: 14px; }
+.cred code { font-family: ui-monospace, Consolas, monospace; font-size: 16px; background: var(--bg); padding: 2px 6px; }
+.cred p + p { margin-top: 6px; }
+.row-form { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 12px; align-items: end; margin-bottom: 28px; }
+.row-form .f { margin-bottom: 0; }
+@media (max-width: 800px) { .row-form { grid-template-columns: 1fr; } }
