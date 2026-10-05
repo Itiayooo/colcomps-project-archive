@@ -6,6 +6,7 @@ import departmentRoutes from './routes/department.routes';
 import adminRoutes from './routes/admin.routes';
 import projectRoutes from './routes/project.routes';
 import reviewRoutes from './routes/review.routes';
+import { notFound, errorHandler } from './middleware/error.middleware';
 
 const app = express();
 
@@ -17,6 +18,8 @@ app.use('/api/departments', departmentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/review', reviewRoutes);
+app.use(notFound);
+app.use(errorHandler);
 
 app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok' });
