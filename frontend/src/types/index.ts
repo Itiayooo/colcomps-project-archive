@@ -19,7 +19,7 @@ export interface Project {
     year: number;
     status: 'pending' | 'approved' | 'revisions_requested' | 'rejected';
     supervisor?: { _id: string; name: string };
-    student?: { _id: string; name: string; matricNo?: string };
+    student?: { _id: string; name: string; matricNo?: string; email?: string };
     githubUrl?: string;
     demoUrl?: string;
     pdfUrl?: string;

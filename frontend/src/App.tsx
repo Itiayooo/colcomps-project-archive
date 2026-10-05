@@ -9,6 +9,8 @@ import NotFoundPage from './pages/NotFoundPage';
 import ProjectDetailPage from './pages/ProjectDetailPage';
 import ProjectFormPage from './pages/ProjectFormPage';
 import MyProjectsPage from './pages/MyProjectsPage';
+import ReviewQueuePage from './pages/ReviewQueuePage';
+import ReviewDetailPage from './pages/ReviewDetailPage';
 
 export default function App() {
   return (
@@ -22,7 +24,7 @@ export default function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/change-password" element={<ChangePasswordPage />} />
         </Route>
-        
+
         <Route element={<ProtectedRoute roles={['student']} guestRedirect="/register" />}>
           <Route path="/submit" element={<ProjectFormPage />} />
         </Route>
@@ -30,6 +32,11 @@ export default function App() {
         <Route element={<ProtectedRoute roles={['student']} />}>
           <Route path="/my-projects" element={<MyProjectsPage />} />
           <Route path="/my-projects/:id/edit" element={<ProjectFormPage />} />
+        </Route>
+
+        <Route element={<ProtectedRoute roles={['supervisor']} />}>
+          <Route path="/review" element={<ReviewQueuePage />} />
+          <Route path="/review/:id" element={<ReviewDetailPage />} />
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />
