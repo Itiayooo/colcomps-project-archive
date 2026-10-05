@@ -113,3 +113,103 @@ export async function uploadProjectPdf(req: Request, res: Response) {
         res.status(502).json({ message: 'Upload failed, please try again' });
     }
 }
+
+function escapeRegex(s: string) {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+const listSchema = z.object({
+    q: z.string().trim().optional(),
+    department: z.string().trim().optional(),
+    year: z.coerce.number().int().optional(),
+    supervisor: z.string().optional(),
+    sort: z.enum(['new', 'downloads', 'title']).default('new'),
+    page: z.coerce.number().int().min(1).default(1),
+    limit: z.coerce.number().int().min(1).max(50).default(10),
+});
+
+const SORTS = { new: '-createdAt', downloads: '-downloads', title: 'title' } as const;
+
+export async function listArchive(req: Request, res: Response) {
+    const parsed = listSchema.safeParse(req.query);
+    if (!parsed.success) {
+        return res.status(400).json({ message: 'Invalid search options' });
+    }
+    const { q, department, year, supervisor, sort, page, limit } = parsed.data;
+
+    const filter: Record<string, unknown> = { status: 'approved' };
+    if (department) filter.department = department;
+    if (year) filter.year = year;
+    if (supervisor && isValidObjectId(supervisor)) filter.supervisor = supervisor;
+
+    if (q) {
+        const rx = new RegExp(escapeRegex(q), 'i');
+        const students = await User.find({
+            role: 'student',
+            $or: [{ name: rx }, { matricNo: rx }],
+        }).select('_id');
+
+        filter.$or = [
+            { title: rx },
+            { abstract: rx },
+            { keywords: rx },
+            { student: { $in: students.map((s) => s._id) } },
+        ];
+    }
+
+    const [projects, total] = await Promise.all([
+        Project.find(filter)
+            .sort(SORTS[sort])
+            .skip((page - 1) * limit)
+            .limit(limit)
+            .populate('supervisor', 'name')
+            .populate('student', 'name matricNo')
+            .select('-reviewNote'),
+        Project.countDocuments(filter),
+    ]);
+
+    res.json({ projects, total, page, pages: Math.ceil(total / limit) });
+}
+
+export async function archiveFilters(_req: Request, res: Response) {
+    const [departments, years, supervisorIds] = await Promise.all([
+        Project.aggregate([
+            { $match: { status: 'approved' } },
+            { $group: { _id: '$department', count: { $sum: 1 } } },
+            { $sort: { _id: 1 } },
+        ]),
+        Project.distinct('year', { status: 'approved' }),
+        Project.distinct('supervisor', { status: 'approved' }),
+    ]);
+
+    const supervisors = await User.find({ _id: { $in: supervisorIds } })
+        .select('name')
+        .sort('name');
+
+    res.json({
+        departments: departments.map((d) => ({ name: d._id, count: d.count })),
+        years: years.sort((a, b) => b - a),
+        supervisors: supervisors.map((s) => ({ id: s._id.toString(), name: s.name })),
+    });
+}
+
+export async function getProject(req: Request, res: Response) {
+    const id = req.params.id as string;
+    if (!isValidObjectId(id)) {
+        return res.status(404).json({ message: 'Project not found' });
+    }
+
+    const project = await Project.findOneAndUpdate(
+        { _id: id, status: 'approved' },
+        { $inc: { views: 1 } },
+        { new: true }
+    )
+        .populate('supervisor', 'name')
+        .populate('student', 'name matricNo')
+        .select('-reviewNote');
+
+    if (!project) {
+        return res.status(404).json({ message: 'Project not found' });
+    }
+    res.json({ project });
+}

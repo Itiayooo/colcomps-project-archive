@@ -11,7 +11,11 @@ const registerSchema = z.object({
     matricNo: z
         .string()
         .trim()
-        .regex(/^\d{4}\/[A-Za-z]{2,4}\/\d{3,5}$/, 'Matric number should look like 2020/CS/0192'),
+        .regex(/^\d{8}$/, 'Matric number must be 8 digits, like 20234532')
+        .refine((v) => {
+            const admissionYear = Number(v.slice(0, 4));
+            return admissionYear >= 2000 && admissionYear <= new Date().getFullYear();
+        }, 'Check your matric number, the first 4 digits should be your admission year'),
     department: z.string().trim().min(1, 'Choose a department'),
     password: z.string().min(8, 'Password must be at least 8 characters'),
 });
