@@ -89,3 +89,6 @@ footer.site { border-top: 1px solid var(--line); background: #fff; padding: 20px
 
 nav.main { align-items: center; }
 .who { font-size: 14px; color: var(--mute); }
+
+.pager { display: flex; justify-content: space-between; align-items: center; padding-top: 20px; font-size: 14px; }
+.pager .lnk:disabled { color: var(--mute); text-decoration: none; cursor: not-allowed; }

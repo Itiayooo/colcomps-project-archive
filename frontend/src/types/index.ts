@@ -9,3 +9,28 @@ export interface User {
     matricNo?: string;
     mustChangePassword: boolean;
 }
+
+export interface Project {
+    _id: string;
+    title: string;
+    abstract: string;
+    keywords: string[];
+    department: string;
+    year: number;
+    status: 'pending' | 'approved' | 'revisions_requested' | 'rejected';
+    supervisor?: { _id: string; name: string };
+    student?: { _id: string; name: string; matricNo?: string };
+    githubUrl?: string;
+    demoUrl?: string;
+    pdfUrl?: string;
+    reviewNote?: string;
+    views: number;
+    downloads: number;
+    createdAt: string;
+}
+
+export interface ArchiveFilters {
+    departments: { name: string; count: number }[];
+    years: number[];
+    supervisors: { id: string; name: string }[];
+}
