@@ -13,16 +13,18 @@ const app = express();
 app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
+
+app.get('/api/health', (_req, res) => {
+  res.json({ status: 'ok' });
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/departments', departmentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/review', reviewRoutes);
+
 app.use(notFound);
 app.use(errorHandler);
-
-app.get('/api/health', (_req, res) => {
-    res.json({ status: 'ok' });
-});
 
 export default app;
