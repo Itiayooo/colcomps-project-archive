@@ -3,6 +3,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import authRoutes from './routes/auth.routes';
 import departmentRoutes from './routes/department.routes';
+import adminRoutes from './routes/admin.routes';
 
 const app = express();
 
@@ -11,6 +12,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use('/api/auth', authRoutes);
 app.use('/api/departments', departmentRoutes);
+app.use('/api/admin', adminRoutes);
 
 
 app.get('/api/health', (_req, res) => {
