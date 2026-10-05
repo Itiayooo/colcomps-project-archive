@@ -1,14 +1,15 @@
-import { useEffect, useState } from 'react';
+import { Routes, Route } from 'react-router-dom';
+import Layout from './components/Layout';
+import ArchivePage from './pages/ArchivePage';
+import NotFoundPage from './pages/NotFoundPage';
 
 export default function App() {
-  const [status, setStatus] = useState('checking...');
-
-  useEffect(() => {
-    fetch('/api/health')
-      .then((r) => r.json())
-      .then((d) => setStatus(d.status))
-      .catch(() => setStatus('backend not reachable'));
-  }, []);
-
-  return <p>Backend status: {status}</p>;
+  return (
+    <Routes>
+      <Route element={<Layout />}>
+        <Route path="/" element={<ArchivePage />} />
+        <Route path="*" element={<NotFoundPage />} />
+      </Route>
+    </Routes>
+  );
 }
