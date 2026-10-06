@@ -6,7 +6,8 @@ import { homePath } from '../lib/roles';
 export default function LoginPage() {
     const { login } = useAuth();
     const navigate = useNavigate();
-    const from = (useLocation().state as { from?: string } | null)?.from;
+    const state = useLocation().state as { from?: string; notice?: string } | null;
+    const from = state?.from;
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -36,6 +37,7 @@ export default function LoginPage() {
                     Students, lecturers and administrators log in here.
                 </p>
 
+                {state?.notice && <p className="notice">{state.notice}</p>}
                 {error && <p className="error" role="alert">{error}</p>}
 
                 <div className="f">
@@ -48,6 +50,10 @@ export default function LoginPage() {
                     <input id="password" className="inp" type="password" value={password}
                         onChange={(e) => setPassword(e.target.value)} required />
                 </div>
+
+                <p style={{ marginBottom: 16, fontSize: 14 }}>
+                    <Link className="lnk" to="/forgot-password">Forgot your password?</Link>
+                </p>
 
                 <button className="btn" type="submit" disabled={busy}>
                     {busy ? 'Logging in...' : 'Log in'}

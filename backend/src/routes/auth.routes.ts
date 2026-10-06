@@ -12,5 +12,7 @@ router.get('/me', requireAuth, me);
 router.patch('/change-password', requireAuth, changePassword);
 router.post('/register', authLimiter, register);
 router.post('/login', authLimiter, login);
+router.post('/forgot-password', authLimiter, forgotPassword);
+router.post('/reset-password', authLimiter, resetPassword);
 
 export default router;

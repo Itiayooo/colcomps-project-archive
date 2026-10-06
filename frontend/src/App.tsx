@@ -12,6 +12,8 @@ import MyProjectsPage from './pages/MyProjectsPage';
 import ReviewQueuePage from './pages/ReviewQueuePage';
 import ReviewDetailPage from './pages/ReviewDetailPage';
 import AdminPage from './pages/AdminPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 
 export default function App() {
   return (

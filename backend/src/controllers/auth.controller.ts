@@ -4,6 +4,8 @@ import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { User, type IUser } from '../models/user.model';
 import { signToken, setAuthCookie, clearAuthCookie } from '../utils/token';
+import crypto from 'crypto';
+import { sendMail } from '../utils/mail';
 
 const registerSchema = z.object({
     name: z.string().trim().min(2, 'Enter your full name'),
@@ -115,4 +117,71 @@ export async function changePassword(req: Request, res: Response) {
     await user.save();
 
     res.json({ user: publicUser(user) });
+}
+
+const forgotSchema = z.object({ email: z.string().trim().email('Enter a valid email') });
+
+const resetSchema = z.object({
+    token: z.string().min(1),
+    newPassword: z.string().min(8, 'New password must be at least 8 characters'),
+});
+
+const sha256 = (value: string) => crypto.createHash('sha256').update(value).digest('hex');
+
+export async function forgotPassword(req: Request, res: Response) {
+    const parsed = forgotSchema.safeParse(req.body);
+    if (!parsed.success) {
+        return res.status(400).json({ message: parsed.error.issues[0].message });
+    }
+
+    const user = await User.findOne({ email: parsed.data.email.toLowerCase() });
+
+    if (user && user.isActive) {
+        const token = crypto.randomBytes(32).toString('hex');
+        await User.updateOne(
+            { _id: user._id },
+            { $set: { resetTokenHash: sha256(token), resetTokenExpires: new Date(Date.now() + 60 * 60 * 1000) } }
+        );
+
+        const link = `${process.env.CLIENT_URL}/reset-password?token=${token}`;
+        if (process.env.NODE_ENV !== 'production') {
+            console.log('Password reset link (dev only):', link);
+        }
+
+        sendMail(
+            { email: user.email, name: user.name },
+            'Reset your COLCOMPS Project Archive password',
+            `<p>Hello ${user.name},</p>
+       <p>We received a request to reset your password. Use the link below to choose a new one. It expires in 1 hour.</p>
+       <p><a href="${link}">Reset my password</a></p>
+       <p>If you did not ask for this, you can ignore this email and your password will stay the same.</p>`
+        ).catch((err) => console.error('Could not send reset email:', err));
+    }
+
+    res.json({ message: 'If that email has an account, we have sent a reset link.' });
+}
+
+export async function resetPassword(req: Request, res: Response) {
+    const parsed = resetSchema.safeParse(req.body);
+    if (!parsed.success) {
+        return res.status(400).json({ message: parsed.error.issues[0].message });
+    }
+
+    const user = await User.findOne({
+        resetTokenHash: sha256(parsed.data.token),
+        resetTokenExpires: { $gt: new Date() },
+    });
+    if (!user) {
+        return res.status(400).json({ message: 'This reset link is invalid or has expired' });
+    }
+
+    await User.updateOne(
+        { _id: user._id },
+        {
+            $set: { passwordHash: await bcrypt.hash(parsed.data.newPassword, 10), mustChangePassword: false },
+            $unset: { resetTokenHash: 1, resetTokenExpires: 1 },
+        }
+    );
+
+    res.json({ message: 'Password changed. You can now log in.' });
 }

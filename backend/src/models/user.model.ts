@@ -19,6 +19,8 @@ const userSchema = new Schema(
         matricNo: { type: String, trim: true, unique: true, sparse: true },
         mustChangePassword: { type: Boolean, default: false },
         isActive: { type: Boolean, default: true },
+        resetTokenHash: { type: String, select: false },
+        resetTokenExpires: { type: Date, select: false },
     },
     { timestamps: true }
 );
