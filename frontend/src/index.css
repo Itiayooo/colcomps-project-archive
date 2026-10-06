@@ -27,7 +27,8 @@ nav.main a.active { color: var(--ink); border-color: var(--blue); }
 .hero h1 { font-size: 34px; line-height: 1.15; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 8px; max-width: 640px; }
 .hero p { margin-bottom: 22px; color: #b9c6d6; max-width: 560px; }
 .search { display: flex; max-width: 720px; }
-.search input { flex: 1; padding: 12px 14px; border: 0; border-radius: 2px 0 0 2px; background: #fff; }
+.search input { flex: 1; padding: 12px 14px; border: 0; border-radius: 2px 0 0 2px; background: #fff; color: var(--ink); }
+.search input::placeholder { color: var(--mute); }
 .search button { padding: 0 22px; border: 0; border-radius: 0 2px 2px 0; background: #2f6fd0; color: #fff; font-weight: 600; cursor: pointer; }
 .search button:hover { background: #3a7be0; }
 
