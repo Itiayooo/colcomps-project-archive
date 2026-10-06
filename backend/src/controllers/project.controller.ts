@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { Project } from '../models/project.model';
 import { User } from '../models/user.model';
 import cloudinary from '../config/cloudinary';
+import { deletePdf } from '../utils/pdf';
 
 const optionalUrl = z.string().trim().url('Enter a valid link').optional().or(z.literal(''));
 
@@ -93,7 +94,7 @@ export async function uploadProjectPdf(req: Request, res: Response) {
     }
 
     try {
-        const url = await new Promise<string>((resolve, reject) => {
+        const uploaded = await new Promise<{ url: string; publicId: string }>((resolve, reject) => {
             cloudinary.uploader
                 .upload_stream(
                     {
@@ -101,13 +102,19 @@ export async function uploadProjectPdf(req: Request, res: Response) {
                         resource_type: 'raw',
                         public_id: `${project._id}-${Date.now()}.pdf`,
                     },
-                    (err, result) => (err || !result ? reject(err) : resolve(result.secure_url))
+                    (err, result) =>
+                        err || !result ? reject(err) : resolve({ url: result.secure_url, publicId: result.public_id })
                 )
                 .end(file.buffer);
         });
 
-        project.pdfUrl = url;
+        const oldUrl = project.pdfUrl;
+        const oldId = project.pdfPublicId;
+        project.pdfUrl = uploaded.url;
+        project.pdfPublicId = uploaded.publicId;
         await project.save();
+        await deletePdf(oldUrl, oldId);
+
         res.json({ project });
     } catch {
         res.status(502).json({ message: 'Upload failed, please try again' });
@@ -288,4 +295,26 @@ export async function downloadProject(req: Request, res: Response) {
     }
 
     res.redirect(project.pdfUrl);
+}
+
+export async function deleteProject(req: Request, res: Response) {
+    const id = req.params.id as string;
+    if (!isValidObjectId(id)) {
+        return res.status(404).json({ message: 'Project not found' });
+    }
+
+    const project = await Project.findOne({ _id: id, student: req.user!._id });
+    if (!project) {
+        return res.status(404).json({ message: 'Project not found' });
+    }
+    if (project.status === 'approved') {
+        return res.status(400).json({
+            message: 'Approved projects are part of the archive. Contact the administrator to have one removed.',
+        });
+    }
+
+    await project.deleteOne();
+    await deletePdf(project.pdfUrl, project.pdfPublicId);
+
+    res.json({ message: 'Project deleted' });
 }

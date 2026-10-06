@@ -104,3 +104,5 @@ nav.main { align-items: center; }
 .row-form { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 12px; align-items: end; margin-bottom: 28px; }
 .row-form .f { margin-bottom: 0; }
 @media (max-width: 800px) { .row-form { grid-template-columns: 1fr; } }
+
+.lnk.danger { color: var(--rev); }

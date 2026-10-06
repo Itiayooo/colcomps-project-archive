@@ -9,6 +9,7 @@ import {
     getProject,
     updateProject,
     resubmitProject,
+    deleteProject,
     downloadProject
 } from '../controllers/project.controller';
 import { requireAuth, requireRole } from '../middleware/auth.middleware';
@@ -25,6 +26,7 @@ router.post('/', requireAuth, requireRole('student'), submitProject);
 router.post('/:id/pdf', requireAuth, requireRole('student'), handleUpload, uploadProjectPdf);
 router.patch('/:id', requireAuth, requireRole('student'), updateProject);
 router.post('/:id/resubmit', requireAuth, requireRole('student'), resubmitProject);
+router.delete('/:id', requireAuth, requireRole('student'), deleteProject);
 
 router.get('/:id/download', downloadProject);
 router.get('/:id', getProject);

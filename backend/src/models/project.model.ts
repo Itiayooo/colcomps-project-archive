@@ -17,6 +17,7 @@ const projectSchema = new Schema(
         githubUrl: { type: String, trim: true },
         demoUrl: { type: String, trim: true },
         pdfUrl: { type: String, trim: true },
+        pdfPublicId: { type: String, trim: true },
         views: { type: Number, default: 0 },
         downloads: { type: Number, default: 0 },
     },

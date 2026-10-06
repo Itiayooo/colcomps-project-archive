@@ -34,3 +34,17 @@ export interface ArchiveFilters {
     years: number[];
     supervisors: { id: string; name: string }[];
 }
+
+export interface Lecturer {
+    id: string;
+    name: string;
+    email: string;
+    department?: string;
+    isActive: boolean;
+    mustChangePassword: boolean;
+}
+
+export interface Department {
+    _id: string;
+    name: string;
+}
