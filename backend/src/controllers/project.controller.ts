@@ -5,6 +5,7 @@ import { Project } from '../models/project.model';
 import { User } from '../models/user.model';
 import cloudinary from '../config/cloudinary';
 import { deletePdf } from '../utils/pdf';
+import { notifySupervisor } from '../utils/notify';
 
 const optionalUrl = z.string().trim().url('Enter a valid link').optional().or(z.literal(''));
 
@@ -114,6 +115,7 @@ export async function uploadProjectPdf(req: Request, res: Response) {
         project.pdfPublicId = uploaded.publicId;
         await project.save();
         await deletePdf(oldUrl, oldId);
+        if (!oldUrl && project.status === 'pending') notifySupervisor(project._id.toString());
 
         res.json({ project });
     } catch {
@@ -276,6 +278,7 @@ export async function resubmitProject(req: Request, res: Response) {
     project.status = 'pending';
     project.reviewNote = undefined;
     await project.save();
+    notifySupervisor(project._id.toString(), true);
 
     res.json({ project });
 }

@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import { isValidObjectId } from 'mongoose';
 import { z } from 'zod';
 import { Project, PROJECT_STATUSES, type ProjectStatus } from '../models/project.model';
+import { notifyStudent } from '../utils/notify';
 
 const listSchema = z.object({
     status: z.enum(PROJECT_STATUSES).default('pending'),
@@ -82,6 +83,7 @@ export async function reviewProject(req: Request, res: Response) {
     project.status = NEW_STATUS[decision];
     project.reviewNote = note || undefined;
     await project.save();
+    notifyStudent(project._id.toString());
 
     res.json({ project });
 }
