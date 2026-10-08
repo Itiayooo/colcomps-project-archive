@@ -15,8 +15,8 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
             .finally(() => setLoading(false));
     }, []);
 
-    async function login(email: string, password: string) {
-        const d = await api.post<{ user: User }>('/auth/login', { email, password });
+    async function login(identifier: string, password: string) {
+        const d = await api.post<{ user: User }>('/auth/login', { identifier, password });
         setUser(d.user);
         return d.user;
     }

@@ -23,7 +23,7 @@ const registerSchema = z.object({
 });
 
 const loginSchema = z.object({
-    email: z.string().trim().email(),
+    identifier: z.string().trim().min(1),
     password: z.string().min(1),
 });
 
@@ -68,11 +68,14 @@ export async function register(req: Request, res: Response) {
 export async function login(req: Request, res: Response) {
     const parsed = loginSchema.safeParse(req.body);
     if (!parsed.success) {
-        return res.status(400).json({ message: 'Enter your email and password' });
+        return res.status(400).json({ message: 'Enter your email or matric number, and your password' });
     }
-    const { email, password } = parsed.data;
+    const { identifier, password } = parsed.data;
 
-    const user = await User.findOne({ email: email.toLowerCase() }).select('+passwordHash');
+    const query = /^\d{8}$/.test(identifier)
+        ? { matricNo: identifier }
+        : { email: identifier.toLowerCase() };
+    const user = await User.findOne(query).select('+passwordHash');
     const valid = user && user.isActive && (await bcrypt.compare(password, user.passwordHash));
     if (!user || !valid) {
         return res.status(401).json({ message: 'Invalid email or password' });

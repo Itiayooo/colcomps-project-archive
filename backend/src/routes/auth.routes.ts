@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { register, login, logout, me, changePassword } from '../controllers/auth.controller';
 import { requireAuth } from '../middleware/auth.middleware';
 import { authLimiter } from '../middleware/rate-limit.middleware';
-
+import { forgotPassword, resetPassword } from '../controllers/auth.controller';
 const router = Router();
 
 router.post('/register', register);

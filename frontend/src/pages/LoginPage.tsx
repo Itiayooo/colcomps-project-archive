@@ -9,19 +9,24 @@ export default function LoginPage() {
     const state = useLocation().state as { from?: string; notice?: string } | null;
     const from = state?.from;
 
-    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [busy, setBusy] = useState(false);
+    const [identifier, setIdentifier] = useState('');
 
     async function handleSubmit(e: FormEvent) {
         e.preventDefault();
         setError('');
         setBusy(true);
+
         try {
-            const user = await login(email, password);
-            if (user.mustChangePassword) navigate('/change-password', { replace: true });
-            else navigate(from ?? homePath(user.role), { replace: true });
+            const user = await login(identifier, password);
+
+            if (user.mustChangePassword) {
+                navigate('/change-password', { replace: true });
+            } else {
+                navigate(from ?? homePath(user.role), { replace: true });
+            }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Could not log in');
         } finally {
@@ -41,9 +46,10 @@ export default function LoginPage() {
                 {error && <p className="error" role="alert">{error}</p>}
 
                 <div className="f">
-                    <label htmlFor="email">Email</label>
-                    <input id="email" className="inp" type="email" value={email}
-                        onChange={(e) => setEmail(e.target.value)} required autoFocus />
+                    <label htmlFor="identifier">Email or matric number</label>
+                    <input id="identifier" className="inp" value={identifier} autoComplete="username"
+                        onChange={(e) => setIdentifier(e.target.value)} required autoFocus />
+                    <small>Students can use their 8-digit matric number. Lecturers and administrators use email.</small>
                 </div>
                 <div className="f">
                     <label htmlFor="password">Password</label>
