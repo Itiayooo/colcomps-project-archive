@@ -6,6 +6,8 @@ import crypto from 'crypto';
 import { z } from 'zod';
 import { User, type IUser } from '../models/user.model';
 import { Department } from '../models/department.model';
+import { Project, PROJECT_STATUSES } from '../models/project.model';
+import { deletePdf } from '../utils/pdf';
 
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
 
@@ -96,4 +98,61 @@ export async function resetLecturerPassword(req: Request, res: Response) {
     await lecturer.save();
 
     res.json({ lecturer: lecturerView(lecturer), tempPassword });
+}
+
+const projectListSchema = z.object({
+    status: z.enum(PROJECT_STATUSES).optional(),
+    q: z.string().trim().optional(),
+});
+
+const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+export async function listAllProjects(req: Request, res: Response) {
+    const parsed = projectListSchema.safeParse(req.query);
+    if (!parsed.success) {
+        return res.status(400).json({ message: 'Invalid filter' });
+    }
+    const { status, q } = parsed.data;
+
+    const filter: Record<string, unknown> = {};
+    if (status) filter.status = status;
+    if (q) filter.title = new RegExp(escapeRegex(q), 'i');
+
+    const projects = await Project.find(filter)
+        .sort('-createdAt')
+        .limit(100)
+        .populate('student', 'name matricNo email')
+        .populate('supervisor', 'name email');
+
+    res.json({ projects });
+}
+
+export async function unpublishProject(req: Request, res: Response) {
+    const id = req.params.id as string;
+    if (!isValidObjectId(id)) {
+        return res.status(404).json({ message: 'Project not found' });
+    }
+
+    const project = await Project.findById(id);
+    if (!project) return res.status(404).json({ message: 'Project not found' });
+    if (project.status !== 'approved') {
+        return res.status(400).json({ message: 'Only approved projects can be unpublished' });
+    }
+
+    project.status = 'pending';
+    await project.save();
+    res.json({ project });
+}
+
+export async function deleteAnyProject(req: Request, res: Response) {
+    const id = req.params.id as string;
+    if (!isValidObjectId(id)) {
+        return res.status(404).json({ message: 'Project not found' });
+    }
+
+    const project = await Project.findByIdAndDelete(id);
+    if (!project) return res.status(404).json({ message: 'Project not found' });
+
+    await deletePdf(project.pdfUrl, project.pdfPublicId);
+    res.json({ message: 'Project deleted' });
 }
