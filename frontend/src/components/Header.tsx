@@ -28,6 +28,7 @@ export default function Header() {
                         (user ? (
                             <>
                                 <span className="who">{user.name}</span>
+                                <NavLink to="/change-password">Change password</NavLink>
                                 <button className="lnk" onClick={handleLogout}>Log out</button>
                             </>
                         ) : (
