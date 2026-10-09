@@ -8,10 +8,10 @@ import { connectDB } from '../config/db';
 const PASSWORD = 'password123';
 
 const LECTURERS = [
-    { name: 'Dr. Test Lecturer', email: 'lecturer@example.com', department: 'Computer Science' },
-    { name: 'Dr. Amina Bello', email: 'amina.bello@example.com', department: 'Software Engineering' },
-    { name: 'Prof. Chukwuma Eze', email: 'chukwuma.eze@example.com', department: 'Cyber Security' },
-    { name: 'Dr. Funmi Adeyemi', email: 'funmi.adeyemi@example.com', department: 'Information Technology' },
+    { title: 'Dr.', name: 'Test Lecturer', email: 'lecturer@example.com', department: 'Computer Science' },
+    { title: 'Dr.', name: 'Amina Bello', email: 'amina.bello@example.com', department: 'Software Engineering' },
+    { title: 'Prof.', name: 'Chukwuma Eze', email: 'chukwuma.eze@example.com', department: 'Cyber Security' },
+    { title: 'Dr.', name: 'Funmi Adeyemi', email: 'funmi.adeyemi@example.com', department: 'Information Technology' },
 ];
 
 const STUDENTS = [
@@ -112,8 +112,15 @@ async function seedDemo() {
     await upsertUser(adminEmail, { name: process.env.ADMIN_NAME || 'Admin', role: 'admin' });
 
     const lecturerIds = new Map<string, mongoose.Types.ObjectId>();
+
     for (const l of LECTURERS) {
-        const u = await upsertUser(l.email, { title: l.title, name: l.name, role: 'supervisor', department: l.department });
+        const u = await upsertUser(l.email, {
+            title: l.title,
+            name: l.name,
+            role: 'supervisor',
+            department: l.department,
+        });
+
         lecturerIds.set(l.email, u._id);
     }
 
