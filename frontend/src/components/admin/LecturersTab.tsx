@@ -112,14 +112,8 @@ export default function LecturersTab() {
     }
 
     async function makeAdmin(l: Lecturer) {
-        if (
-            !window.confirm(
-                `Make ${formalName(l)} an administrator? They will stop being a lecturer and lose their review queue.`
-            )
-        )
-            return;
+        if (!window.confirm(`Make ${formalName(l)} an administrator? They will stop being a lecturer and lose their review queue.`)) return;
         setError('');
-        setNotice('');
         setBusyId(l.id);
         try {
             await api.post(`/admin/lecturers/${l.id}/make-admin`);

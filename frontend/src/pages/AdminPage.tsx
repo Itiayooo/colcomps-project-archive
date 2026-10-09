@@ -2,10 +2,12 @@ import { useState } from 'react';
 import LecturersTab from '../components/admin/LecturersTab';
 import DepartmentsTab from '../components/admin/DepartmentsTab';
 import ProjectsTab from '../components/admin/ProjectsTab';
+import AdminsTab from '../components/admin/AdminsTab';
 
 const TABS = [
     { key: 'lecturers', label: 'Lecturers' },
     { key: 'projects', label: 'Projects' },
+    { key: 'admins', label: 'Administrators' },
     { key: 'departments', label: 'Departments' },
 ] as const;
 
@@ -28,6 +30,7 @@ export default function AdminPage() {
 
             {tab === 'lecturers' && <LecturersTab />}
             {tab === 'projects' && <ProjectsTab />}
+            {tab === 'admins' && <AdminsTab />}
             {tab === 'departments' && <DepartmentsTab />}
         </div>
     );

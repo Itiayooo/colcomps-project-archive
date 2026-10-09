@@ -50,3 +50,13 @@ export interface Department {
     _id: string;
     name: string;
 }
+
+export interface AdminUser {
+    id: string;
+    name: string;
+    title?: string;
+    email: string;
+    isActive: boolean;
+    mustChangePassword: boolean;
+    isYou: boolean;
+}

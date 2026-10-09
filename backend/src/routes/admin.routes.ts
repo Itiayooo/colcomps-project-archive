@@ -8,6 +8,11 @@ import {
     unpublishProject,
     deleteAnyProject,
     reassignProject,
+    makeAdmin,
+    listAdmins,
+    createAdmin,
+    setAdminStatus,
+    resetAdminPassword
 } from '../controllers/admin.controller';
 import { requireAuth, requireRole } from '../middleware/auth.middleware';
 
@@ -23,5 +28,10 @@ router.get('/projects', listAllProjects);
 router.patch('/projects/:id/unpublish', unpublishProject);
 router.delete('/projects/:id', deleteAnyProject);
 router.patch('/projects/:id/supervisor', reassignProject);
+router.post('/lecturers/:id/make-admin', makeAdmin);
+router.get('/admins', listAdmins);
+router.post('/admins', createAdmin);
+router.patch('/admins/:id/status', setAdminStatus);
+router.post('/admins/:id/reset-password', resetAdminPassword);
 
 export default router;
