@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { api } from '../../lib/api';
+import { formalName } from '../../lib/names';
 import type { Department, Lecturer } from '../../types';
+
+const TITLES = ['Prof.', 'Dr.', 'Engr.', 'Mr.', 'Mrs.', 'Miss'];
 
 interface Credentials {
     name: string;
@@ -11,9 +14,10 @@ interface Credentials {
 export default function LecturersTab() {
     const [lecturers, setLecturers] = useState<Lecturer[] | null>(null);
     const [departments, setDepartments] = useState<Department[]>([]);
-    const [form, setForm] = useState({ name: '', email: '', department: '' });
+    const [form, setForm] = useState({ title: '', name: '', email: '', department: '' });
     const [creds, setCreds] = useState<Credentials | null>(null);
     const [copied, setCopied] = useState(false);
+    const [notice, setNotice] = useState('');
     const [error, setError] = useState('');
     const [busy, setBusy] = useState(false);
     const [busyId, setBusyId] = useState('');
@@ -43,11 +47,19 @@ export default function LecturersTab() {
     async function handleCreate(e: FormEvent) {
         e.preventDefault();
         setError('');
+        setNotice('');
         setBusy(true);
         try {
-            const d = await api.post<{ lecturer: Lecturer; tempPassword: string }>('/admin/lecturers', form);
-            showCreds({ name: d.lecturer.name, email: d.lecturer.email, tempPassword: d.tempPassword });
-            setForm({ name: '', email: '', department: form.department });
+            const d = await api.post<{ lecturer: Lecturer; tempPassword: string }>('/admin/lecturers', {
+                ...form,
+                title: form.title || undefined,
+            });
+            showCreds({
+                name: formalName(d.lecturer),
+                email: d.lecturer.email,
+                tempPassword: d.tempPassword,
+            });
+            setForm({ title: '', name: '', email: '', department: form.department });
             await load();
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Could not add the lecturer');
@@ -59,11 +71,19 @@ export default function LecturersTab() {
     async function toggleActive(l: Lecturer) {
         const action = l.isActive ? 'Deactivate' : 'Reactivate';
         const warning = l.isActive ? ' They will be logged out and unable to sign in.' : '';
-        if (!window.confirm(`${action} ${l.name}?${warning}`)) return;
+        if (!window.confirm(`${action} ${formalName(l)}?${warning}`)) return;
         setError('');
+        setNotice('');
         setBusyId(l.id);
         try {
-            await api.patch(`/admin/lecturers/${l.id}/status`, { isActive: !l.isActive });
+            const d = await api.patch<{ openProjects: number }>(`/admin/lecturers/${l.id}/status`, {
+                isActive: !l.isActive,
+            });
+            if (d.openProjects > 0) {
+                setNotice(
+                    `${formalName(l)} still has ${d.openProjects} project(s) under review. Reassign them in the Projects tab.`
+                );
+            }
             await load();
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Could not update the lecturer');
@@ -73,15 +93,36 @@ export default function LecturersTab() {
     }
 
     async function resetPassword(l: Lecturer) {
-        if (!window.confirm(`Reset the password for ${l.name}? Their current password will stop working.`)) return;
+        if (!window.confirm(`Reset the password for ${formalName(l)}? Their current password will stop working.`)) return;
         setError('');
+        setNotice('');
         setBusyId(l.id);
         try {
             const d = await api.post<{ tempPassword: string }>(`/admin/lecturers/${l.id}/reset-password`);
-            showCreds({ name: l.name, email: l.email, tempPassword: d.tempPassword });
+            showCreds({ name: formalName(l), email: l.email, tempPassword: d.tempPassword });
             await load();
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Could not reset the password');
+        } finally {
+            setBusyId('');
+        }
+    }
+
+    async function makeAdmin(l: Lecturer) {
+        if (
+            !window.confirm(
+                `Make ${formalName(l)} an administrator? They will stop being a lecturer and lose their review queue.`
+            )
+        )
+            return;
+        setError('');
+        setNotice('');
+        setBusyId(l.id);
+        try {
+            await api.post(`/admin/lecturers/${l.id}/make-admin`);
+            await load();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Could not make this lecturer an administrator');
         } finally {
             setBusyId('');
         }
@@ -114,6 +155,7 @@ export default function LecturersTab() {
                 </div>
             )}
 
+            {notice && <p className="notice">{notice}</p>}
             {error && <p className="error" role="alert">{error}</p>}
 
             <h2 className="sh">Add a lecturer</h2>
@@ -122,7 +164,17 @@ export default function LecturersTab() {
             ) : (
                 <form className="row-form" onSubmit={handleCreate}>
                     <div className="f">
-                        <label htmlFor="l-name">Full name</label>
+                        <label htmlFor="l-title">Title</label>
+                        <select id="l-title" className="inp" value={form.title}
+                            onChange={(e) => setForm({ ...form, title: e.target.value })}>
+                            <option value="">None</option>
+                            {TITLES.map((t) => (
+                                <option key={t} value={t}>{t}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="f">
+                        <label htmlFor="l-name">Full name (without title)</label>
                         <input id="l-name" className="inp" value={form.name}
                             onChange={(e) => setForm({ ...form, name: e.target.value })} required />
                     </div>
@@ -158,7 +210,7 @@ export default function LecturersTab() {
                         <tbody>
                             {lecturers.map((l) => (
                                 <tr key={l.id}>
-                                    <td><b>{l.name}</b><div className="id">{l.email}</div></td>
+                                    <td><b>{formalName(l)}</b><div className="id">{l.email}</div></td>
                                     <td>{l.department}</td>
                                     <td>
                                         {!l.isActive ? (
@@ -177,6 +229,11 @@ export default function LecturersTab() {
                                             <button className="lnk" disabled={busyId === l.id} onClick={() => toggleActive(l)}>
                                                 {l.isActive ? 'Deactivate' : 'Reactivate'}
                                             </button>
+                                            {l.isActive && (
+                                                <button className="lnk" disabled={busyId === l.id} onClick={() => makeAdmin(l)}>
+                                                    Make administrator
+                                                </button>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>

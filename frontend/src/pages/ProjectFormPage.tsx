@@ -2,10 +2,12 @@ import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../lib/api';
 import type { Project } from '../types';
+import { formalName } from '../lib/names';
 
 interface Supervisor {
     id: string;
     name: string;
+    title?: string;
 }
 
 const MAX_PDF = 25 * 1024 * 1024;
@@ -22,14 +24,7 @@ export default function ProjectFormPage() {
     const navigate = useNavigate();
 
     const [supervisors, setSupervisors] = useState<Supervisor[]>([]);
-    const [form, setForm] = useState({
-        title: '',
-        abstract: '',
-        keywords: '',
-        supervisorId: '',
-        githubUrl: '',
-        demoUrl: '',
-    });
+    const [form, setForm] = useState({ title: '', name: '', email: '', department: '' });
     const [file, setFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(true);
     const [blocked, setBlocked] = useState('');
@@ -211,7 +206,7 @@ export default function ProjectFormPage() {
                             onChange={(e) => set('supervisorId', e.target.value)} required>
                             <option value="" disabled>Choose your supervisor</option>
                             {supervisors.map((s) => (
-                                <option key={s.id} value={s.id}>{s.name}</option>
+                                <option key={s.id} value={s.id}>{formalName(s)}</option>
                             ))}
                         </select>
                     </div>

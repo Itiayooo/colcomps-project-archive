@@ -1,5 +1,6 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { shortName } from '../lib/names';
 
 export default function Header() {
     const { user, loading, logout } = useAuth();
@@ -27,7 +28,7 @@ export default function Header() {
                     {!loading &&
                         (user ? (
                             <>
-                                <span className="who">{user.name}</span>
+                                <span className="who">{shortName(user)}</span>
                                 <NavLink to="/change-password">Change password</NavLink>
                                 <button className="lnk" onClick={handleLogout}>Log out</button>
                             </>

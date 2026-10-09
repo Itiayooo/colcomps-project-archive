@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { api } from '../lib/api';
 import { STATUS_LABEL } from '../lib/status';
 import type { Project } from '../types';
+import { formalName } from '../lib/names';
 
 export default function MyProjectsPage() {
     const notice = (useLocation().state as { notice?: string } | null)?.notice;
@@ -86,7 +87,7 @@ export default function MyProjectsPage() {
                             )}
 
                             <div className="meta">
-                                {p.supervisor && <span>Supervisor: {p.supervisor.name}</span>}
+                                {p.supervisor && <span>Supervisor: {formalName(p.supervisor)}</span>}
                                 <span>Submitted {new Date(p.createdAt).toLocaleDateString('en-GB')}</span>
                                 <span>{p.pdfUrl ? 'PDF uploaded' : 'No PDF yet'}</span>
                             </div>

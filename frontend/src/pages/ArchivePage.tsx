@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
 import type { ArchiveFilters, Project } from '../types';
+import { formalName } from '../lib/names';
 
 interface ListResponse {
     projects: Project[];
@@ -147,7 +148,7 @@ export default function ArchivePage() {
                             <select className="inp" value={supervisor} onChange={(e) => pick(setSupervisor, e.target.value)}>
                                 <option value="">All supervisors</option>
                                 {filters?.supervisors.map((s) => (
-                                    <option key={s.id} value={s.id}>{s.name}</option>
+                                    <option key={s.id} value={s.id}>{formalName(s)}</option>
                                 ))}
                             </select>
                         </div>
@@ -195,7 +196,7 @@ export default function ArchivePage() {
                                     <p className="abs">{p.abstract}</p>
                                     <div className="meta">
                                         <span>{p.department}</span>
-                                        {p.supervisor && <span>Supervisor: {p.supervisor.name}</span>}
+                                        {p.supervisor && <span>Supervisor: {formalName(p.supervisor)}</span>}
                                         {p.pdfUrl && (
                                             <a className="lnk" href={`/api/projects/${p._id}/download`} target="_blank" rel="noreferrer">
                                                 Download PDF

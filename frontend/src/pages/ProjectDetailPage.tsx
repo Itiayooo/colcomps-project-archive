@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api, ApiError } from '../lib/api';
 import type { Project } from '../types';
+import { formalName } from '../lib/names';
 
 export default function ProjectDetailPage() {
     const { id } = useParams();
@@ -120,7 +121,7 @@ export default function ProjectDetailPage() {
                         {project.supervisor && (
                             <>
                                 <dt>Supervisor</dt>
-                                <dd>{project.supervisor.name}</dd>
+                                <dd>{formalName(project.supervisor)}</dd>
                             </>
                         )}
                         <dt>Session</dt>

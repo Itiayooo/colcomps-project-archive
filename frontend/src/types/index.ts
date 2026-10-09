@@ -3,6 +3,7 @@ export type Role = 'student' | 'supervisor' | 'admin';
 export interface User {
     id: string;
     name: string;
+    title?: string;
     email: string;
     role: Role;
     department?: string;
@@ -18,7 +19,7 @@ export interface Project {
     department: string;
     year: number;
     status: 'pending' | 'approved' | 'revisions_requested' | 'rejected';
-    supervisor?: { _id: string; name: string };
+    supervisor?: { _id: string; name: string; title?: string; isActive?: boolean };
     student?: { _id: string; name: string; matricNo?: string; email?: string };
     githubUrl?: string;
     demoUrl?: string;
@@ -32,12 +33,13 @@ export interface Project {
 export interface ArchiveFilters {
     departments: { name: string; count: number }[];
     years: number[];
-    supervisors: { id: string; name: string }[];
+    supervisors: { id: string; name: string; title?: string }[];
 }
 
 export interface Lecturer {
     id: string;
     name: string;
+    title?: string;
     email: string;
     department?: string;
     isActive: boolean;
