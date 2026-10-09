@@ -1,16 +1,24 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../lib/api';
+import { formalName } from '../../lib/names';
 import { STATUS_LABEL } from '../../lib/status';
-import type { Project } from '../../types';
+import type { Lecturer, Project } from '../../types';
 
 export default function ProjectsTab() {
     const [projects, setProjects] = useState<Project[] | null>(null);
+    const [lecturers, setLecturers] = useState<Lecturer[]>([]);
     const [status, setStatus] = useState('');
     const [q, setQ] = useState('');
     const [reloadKey, setReloadKey] = useState(0);
     const [error, setError] = useState('');
     const [busyId, setBusyId] = useState('');
+    const [reassign, setReassign] = useState<Project | null>(null);
+    const [target, setTarget] = useState('');
+
+    useEffect(() => {
+        api.get<{ lecturers: Lecturer[] }>('/admin/lecturers').then((d) => setLecturers(d.lecturers)).catch(() => { });
+    }, [reloadKey]);
 
     useEffect(() => {
         let cancelled = false;
@@ -55,8 +63,51 @@ export default function ProjectsTab() {
         }
     }
 
+    async function saveReassign() {
+        if (!reassign || !target) return;
+        setError('');
+        setBusyId(reassign._id);
+        try {
+            await api.patch(`/admin/projects/${reassign._id}/supervisor`, { supervisorId: target });
+            setReassign(null);
+            setTarget('');
+            setReloadKey((k) => k + 1);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Could not reassign');
+        } finally {
+            setBusyId('');
+        }
+    }
+
+    const eligible = reassign
+        ? lecturers.filter((l) => l.isActive && l.department === reassign.department && l.id !== reassign.supervisor?._id)
+        : [];
+
     return (
         <div>
+            {reassign && (
+                <div className="panel" style={{ marginBottom: 20, maxWidth: 520 }}>
+                    <p style={{ marginBottom: 12 }}><b>Reassign</b> "{reassign.title}"</p>
+                    {eligible.length === 0 ? (
+                        <p style={{ color: 'var(--mute)', marginBottom: 12 }}>
+                            No other active lecturer in {reassign.department}. Add one in the Lecturers tab first.
+                        </p>
+                    ) : (
+                        <div className="f">
+                            <label htmlFor="target">New supervisor</label>
+                            <select id="target" className="inp" value={target} onChange={(e) => setTarget(e.target.value)}>
+                                <option value="" disabled>Choose a lecturer</option>
+                                {eligible.map((l) => <option key={l.id} value={l.id}>{formalName(l)}</option>)}
+                            </select>
+                        </div>
+                    )}
+                    <div style={{ display: 'flex', gap: 12 }}>
+                        <button className="btn" disabled={!target || busyId === reassign._id} onClick={saveReassign}>Reassign</button>
+                        <button className="btn alt" onClick={() => { setReassign(null); setTarget(''); }}>Cancel</button>
+                    </div>
+                </div>
+            )}
+
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 20 }}>
                 <input className="inp" style={{ maxWidth: 320 }} placeholder="Search by title" aria-label="Search by title"
                     value={q} onChange={(e) => setQ(e.target.value)} />
@@ -83,6 +134,7 @@ export default function ProjectsTab() {
                         <tbody>
                             {projects.map((p) => {
                                 const s = STATUS_LABEL[p.status];
+                                const open = p.status === 'pending' || p.status === 'revisions_requested';
                                 return (
                                     <tr key={p._id}>
                                         <td style={{ maxWidth: 320 }}>
@@ -90,18 +142,20 @@ export default function ProjectsTab() {
                                             <div className="id">{p.department}, {p.year}</div>
                                         </td>
                                         <td>{p.student?.name}<div className="id">{p.student?.matricNo}</div></td>
-                                        <td>{p.supervisor?.name}</td>
+                                        <td>
+                                            {p.supervisor ? formalName(p.supervisor) : '-'}
+                                            {p.supervisor?.isActive === false && <div className="id rev">Deactivated</div>}
+                                        </td>
                                         <td className={s.cls}>{s.label}</td>
                                         <td>
                                             <div className="acts">
-                                                {p.status === 'approved' && (
-                                                    <button className="lnk" disabled={busyId === p._id} onClick={() => act(p, 'unpublish')}>
-                                                        Unpublish
-                                                    </button>
+                                                {open && (
+                                                    <button className="lnk" onClick={() => { setReassign(p); setTarget(''); }}>Reassign</button>
                                                 )}
-                                                <button className="lnk danger" disabled={busyId === p._id} onClick={() => act(p, 'delete')}>
-                                                    Delete
-                                                </button>
+                                                {p.status === 'approved' && (
+                                                    <button className="lnk" disabled={busyId === p._id} onClick={() => act(p, 'unpublish')}>Unpublish</button>
+                                                )}
+                                                <button className="lnk danger" disabled={busyId === p._id} onClick={() => act(p, 'delete')}>Delete</button>
                                             </div>
                                         </td>
                                     </tr>

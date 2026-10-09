@@ -1,8 +1,8 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../lib/api';
-import type { Project } from '../types';
 import { formalName } from '../lib/names';
+import type { Project } from '../types';
 
 interface Supervisor {
     id: string;
@@ -24,7 +24,14 @@ export default function ProjectFormPage() {
     const navigate = useNavigate();
 
     const [supervisors, setSupervisors] = useState<Supervisor[]>([]);
-    const [form, setForm] = useState({ title: '', name: '', email: '', department: '' });
+    const [form, setForm] = useState({
+        title: '',
+        abstract: '',
+        keywords: '',
+        supervisorId: '',
+        githubUrl: '',
+        demoUrl: '',
+    });
     const [file, setFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(true);
     const [blocked, setBlocked] = useState('');

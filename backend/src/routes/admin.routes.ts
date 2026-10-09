@@ -6,7 +6,8 @@ import {
     resetLecturerPassword,
     listAllProjects,
     unpublishProject,
-    deleteAnyProject
+    deleteAnyProject,
+    reassignProject,
 } from '../controllers/admin.controller';
 import { requireAuth, requireRole } from '../middleware/auth.middleware';
 
@@ -21,5 +22,6 @@ router.post('/lecturers/:id/reset-password', resetLecturerPassword);
 router.get('/projects', listAllProjects);
 router.patch('/projects/:id/unpublish', unpublishProject);
 router.delete('/projects/:id', deleteAnyProject);
+router.patch('/projects/:id/supervisor', reassignProject);
 
 export default router;

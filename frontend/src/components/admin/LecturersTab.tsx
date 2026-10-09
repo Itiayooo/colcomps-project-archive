@@ -76,9 +76,12 @@ export default function LecturersTab() {
         setNotice('');
         setBusyId(l.id);
         try {
-            const d = await api.patch<{ openProjects: number }>(`/admin/lecturers/${l.id}/status`, {
-                isActive: !l.isActive,
-            });
+            const d = await api.patch<{ openProjects: number }>(`/admin/lecturers/${l.id}/status`, { isActive: !l.isActive });
+            setNotice(
+                d.openProjects > 0
+                    ? `${formalName(l)} still has ${d.openProjects} project(s) under review. Reassign them in the Projects tab.`
+                    : ''
+            );
             if (d.openProjects > 0) {
                 setNotice(
                     `${formalName(l)} still has ${d.openProjects} project(s) under review. Reassign them in the Projects tab.`
