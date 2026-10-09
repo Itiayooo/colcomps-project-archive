@@ -1,6 +1,7 @@
 import { Project } from '../models/project.model';
 import { User } from '../models/user.model';
 import { sendMail } from './mail';
+import { formalName, shortName } from './names';
 
 const esc = (s: string) =>
     s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -14,7 +15,7 @@ function button(href: string, label: string) {
 }
 
 async function deliver(to: { email: string; name: string }, subject: string, html: string) {
-    if (/@example\.com$/i.test(to.email)) return; // demo accounts have fake addresses
+    if (/@example\.com$/i.test(to.email)) return;
     await sendMail(to, subject, html);
 }
 

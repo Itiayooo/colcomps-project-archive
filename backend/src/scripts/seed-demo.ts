@@ -113,7 +113,7 @@ async function seedDemo() {
 
     const lecturerIds = new Map<string, mongoose.Types.ObjectId>();
     for (const l of LECTURERS) {
-        const u = await upsertUser(l.email, { name: l.name, role: 'supervisor', department: l.department });
+        const u = await upsertUser(l.email, { title: l.title, name: l.name, role: 'supervisor', department: l.department });
         lecturerIds.set(l.email, u._id);
     }
 

@@ -25,7 +25,7 @@ export async function listSupervisors(req: Request, res: Response) {
         department: req.user?.department,
     }).sort('name');
 
-    res.json({ supervisors: supervisors.map((s) => ({ id: s._id.toString(), name: s.name })) });
+    res.json({ supervisors: supervisors.map((s) => ({ id: s._id.toString(), name: s.name, title: s.title })) });
 }
 
 export async function submitProject(req: Request, res: Response) {
@@ -67,7 +67,7 @@ export async function submitProject(req: Request, res: Response) {
 
 export async function myProjects(req: Request, res: Response) {
     const projects = await Project.find({ student: req.user!._id })
-        .populate('supervisor', 'name')
+        .populate('supervisor', 'name title')
         .sort('-createdAt');
     res.json({ projects });
 }
@@ -171,7 +171,7 @@ export async function listArchive(req: Request, res: Response) {
             .sort(SORTS[sort])
             .skip((page - 1) * limit)
             .limit(limit)
-            .populate('supervisor', 'name')
+            .populate('supervisor', 'name title')
             .populate('student', 'name matricNo')
             .select('-reviewNote'),
         Project.countDocuments(filter),
@@ -192,13 +192,13 @@ export async function archiveFilters(_req: Request, res: Response) {
     ]);
 
     const supervisors = await User.find({ _id: { $in: supervisorIds } })
-        .select('name')
+        .select('name title')
         .sort('name');
 
     res.json({
         departments: departments.map((d) => ({ name: d._id, count: d.count })),
         years: years.sort((a, b) => b - a),
-        supervisors: supervisors.map((s) => ({ id: s._id.toString(), name: s.name })),
+        supervisors: supervisors.map((s) => ({ id: s._id.toString(), name: s.name, title: s.title })),
     });
 }
 
@@ -213,7 +213,7 @@ export async function getProject(req: Request, res: Response) {
         { $inc: { views: 1 } },
         { new: true }
     )
-        .populate('supervisor', 'name')
+        .populate('supervisor', 'name title')
         .populate('student', 'name matricNo')
         .select('-reviewNote');
 

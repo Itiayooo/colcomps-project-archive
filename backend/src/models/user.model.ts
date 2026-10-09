@@ -2,6 +2,7 @@ import { Schema, model, InferSchemaType } from 'mongoose';
 
 export const ROLES = ['student', 'supervisor', 'admin'] as const;
 export type Role = (typeof ROLES)[number];
+export const TITLES = ['Prof.', 'Dr.', 'Engr.', 'Mr.', 'Mrs.', 'Miss'] as const;
 
 const userSchema = new Schema(
     {
@@ -16,6 +17,7 @@ const userSchema = new Schema(
         passwordHash: { type: String, required: true, select: false },
         role: { type: String, enum: ROLES, required: true },
         department: { type: String, trim: true },
+            title: { type: String, enum: TITLES },
         matricNo: { type: String, trim: true, unique: true, sparse: true },
         mustChangePassword: { type: Boolean, default: false },
         isActive: { type: Boolean, default: true },

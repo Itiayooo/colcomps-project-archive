@@ -4,7 +4,7 @@ import { isValidObjectId } from 'mongoose';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { z } from 'zod';
-import { User, type IUser } from '../models/user.model';
+import { User, TITLES, type IUser } from '../models/user.model';
 import { Department } from '../models/department.model';
 import { Project, PROJECT_STATUSES } from '../models/project.model';
 import { deletePdf } from '../utils/pdf';
@@ -19,6 +19,7 @@ function lecturerView(u: HydratedDocument<IUser>) {
     return {
         id: u._id.toString(),
         name: u.name,
+        title: u.title,
         email: u.email,
         department: u.department,
         isActive: u.isActive,
@@ -30,6 +31,7 @@ const createSchema = z.object({
     name: z.string().trim().min(2, 'Enter the lecturer name'),
     email: z.string().trim().email('Enter a valid email'),
     department: z.string().trim().min(1, 'Choose a department'),
+    title: z.enum(TITLES).optional(),
 });
 
 const statusSchema = z.object({ isActive: z.boolean() });
@@ -44,17 +46,20 @@ export async function createLecturer(req: Request, res: Response) {
     if (!parsed.success) {
         return res.status(400).json({ message: parsed.error.issues[0].message });
     }
-    const { name, email, department } = parsed.data;
+
+    const { title, name, email, department } = parsed.data;
 
     if (!(await Department.exists({ name: department }))) {
         return res.status(400).json({ message: 'That department does not exist' });
     }
+
     if (await User.exists({ email: email.toLowerCase() })) {
         return res.status(409).json({ message: 'An account with this email already exists' });
     }
 
     const tempPassword = generateTempPassword();
     const user = await User.create({
+        title,
         name,
         email,
         department,
@@ -65,6 +70,7 @@ export async function createLecturer(req: Request, res: Response) {
 
     res.status(201).json({ lecturer: lecturerView(user), tempPassword });
 }
+
 
 export async function listLecturers(req: Request, res: Response) {
     const filter: Record<string, unknown> = { role: 'supervisor' };
